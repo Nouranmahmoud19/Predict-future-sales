@@ -9,7 +9,7 @@ import numpy as np
 
 st.set_page_config(page_title="Bike sharing Dashboard", layout="wide")
 
-df = pd.read_csv(r"C:\Users\noura\Predict-future-sales\Predict-future-sales\cleaned_df.csv")  
+df = pd.read_csv("cleaned_df.csv")  
 
 # Data preprocessing
 
@@ -93,7 +93,7 @@ def is_rush_hour(hour):
 df_filtered['rush_hour'] = df_filtered['hour'].apply(is_rush_hour)
 
 
-model = joblib.load(r"C:\Users\noura\Predict-future-sales\Predict-future-sales\bike_count_prediction_rf.joblib")
+model = joblib.load("bike_count_prediction_rf.joblib")
 # Input widgets for features
 st.markdown("### 🧑‍🔬 Predict Bike Rentals")
 st.markdown("Fill in the details below to predict bike rentals.")
