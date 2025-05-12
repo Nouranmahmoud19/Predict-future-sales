@@ -76,7 +76,7 @@ fig6 = px.pie(user_counts, values='Count', names='User Type', title='User Type P
 st.plotly_chart(fig6, use_container_width=True)
 
 st.markdown("### 💧 Humidity vs Ride Count")
-fig7 = px.scatter(df_filtered, x='humidity', y='count', color='season', title="Humidity vs Ride Count", trendline='ols', labels={"hum": "Humidity", "cnt": "Ride Count"}, template="plotly_dark")
+fig7 = px.scatter(df_filtered, x='humidity', y='count', color='season', title="Humidity vs Ride Count", labels={"hum": "Humidity", "cnt": "Ride Count"}, template="plotly_dark")
 st.plotly_chart(fig7, use_container_width=True)
 
 st.markdown("### 📦 Ride Count Distribution by Month")
