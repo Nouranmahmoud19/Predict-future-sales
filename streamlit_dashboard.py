@@ -9,7 +9,7 @@ import numpy as np
 
 st.set_page_config(page_title="Bike sharing Dashboard", layout="wide")
 
-df = pd.read_csv("cleaned_df.csv")  
+df = pd.read_csv(r"C:\Users\noura\Predict-future-sales\Predict-future-sales\cleaned_df.csv")  
 
 # Data preprocessing
 
@@ -93,8 +93,7 @@ def is_rush_hour(hour):
 df_filtered['rush_hour'] = df_filtered['hour'].apply(is_rush_hour)
 
 
-model = joblib.load("random_forest_model.joblib")
-
+model = joblib.load(r"C:\Users\noura\Predict-future-sales\Predict-future-sales\bike_count_prediction_rf.joblib")
 # Input widgets for features
 st.markdown("### 🧑‍🔬 Predict Bike Rentals")
 st.markdown("Fill in the details below to predict bike rentals.")
@@ -124,9 +123,7 @@ with col3:
 season_map = {"Spring": 1, "Summer": 2, "Fall": 3, "Winter": 4}
 month_map = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6, "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
 weekday_map = {"Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6}
-weather_map = {"Clear": 1, "Mist": 2, "Light Snow": 3, "Heavy Rain": 4}
 binary_map = {"No": 0, "Yes": 1}
-
 
 input_data = {
     "season": int(season_map[season]),
@@ -136,21 +133,24 @@ input_data = {
     "holiday": int(binary_map[holiday]),
     "weekday": int(weekday_map[weekday]),
     "workingday": int(binary_map[workingday]),
-    "weather": int(weather_map[weather]),  
+    "weather": weather,  
     "temp": float(temp),
     "atemp": float(atemp),
     "humidity": float(humidity),
     "windspeed": float(windspeed),
     "rush_hour": int(binary_map[rush_hour])
 }
+
+# Convert input data to DataFrame with explicit dtypes matching training data
 input_df = pd.DataFrame([input_data]).astype({
-    "season": "int64",      
+    "season": "int64",
+    "year": "int64",
     "month": "int64",
     "hour": "int64",
     "holiday": "int64",
     "weekday": "int64",
     "workingday": "int64",
-    "weather": "int64",     
+    "weather": "object",  
     "rush_hour": "int64",
     "temp": "float64",
     "atemp": "float64",
@@ -158,12 +158,9 @@ input_df = pd.DataFrame([input_data]).astype({
     "windspeed": "float64"
 })
 
-# Convert input data to DataFrame
-input_df = pd.DataFrame([input_data])
+# Debugging: Display input DataFrame and types
+st.write("Input DataFrame:")
 st.write(input_df)
-
-
-
 
 # Make prediction
 if st.button("Predict Bike Rentals"):
@@ -183,7 +180,5 @@ if st.button("Predict Bike Rentals"):
         st.plotly_chart(fig_pred, use_container_width=True)
     except Exception as e:
         st.error(f"Prediction failed: {str(e)}")
-
 # Download filtered data
 st.download_button("📥 Download Filtered Data", df_filtered.to_csv(index=False), file_name="filtered_bike_data.csv")
-
