@@ -59,7 +59,7 @@ st.plotly_chart(fig2, use_container_width=True)
 
 # Temperature scatter plot with trendline
 st.markdown("### 🌡️ Temperature Effect on Rides")
-fig3 = px.scatter(df_filtered, x='temp', y='count', color='season', title="Temperature vs Ride Count", trendline='ols', template="plotly_dark")
+fig3 = px.scatter(df_filtered, x='temp', y='count', color='season', title="Temperature vs Ride Count",  template="plotly_dark")
 fig3.update_layout(title_font_size=24, title_x=0.5, xaxis_title="Temperature (Normalized)", yaxis_title="Total Rides")
 st.plotly_chart(fig3, use_container_width=True)
 
