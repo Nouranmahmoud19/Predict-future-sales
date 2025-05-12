@@ -94,6 +94,9 @@ df_filtered['rush_hour'] = df_filtered['hour'].apply(is_rush_hour)
 
 
 model = joblib.load("bike_count_prediction_rf.joblib")
+
+MODEL_TEST_R2 = 0.93
+
 # Input widgets for features
 st.markdown("### 🧑‍🔬 Predict Bike Rentals")
 st.markdown("Fill in the details below to predict bike rentals.")
@@ -150,7 +153,7 @@ input_df = pd.DataFrame([input_data]).astype({
     "holiday": "int64",
     "weekday": "int64",
     "workingday": "int64",
-    "weather": "object",  
+    "weather": "object",  # Critical: must be int64 to match training data
     "rush_hour": "int64",
     "temp": "float64",
     "atemp": "float64",
@@ -180,5 +183,7 @@ if st.button("Predict Bike Rentals"):
         st.plotly_chart(fig_pred, use_container_width=True)
     except Exception as e:
         st.error(f"Prediction failed: {str(e)}")
+
+
 # Download filtered data
 st.download_button("📥 Download Filtered Data", df_filtered.to_csv(index=False), file_name="filtered_bike_data.csv")
