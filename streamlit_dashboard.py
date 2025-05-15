@@ -20,12 +20,49 @@ df['weather'] = df['weather'].map({1: "Clear", 2: "Mist", 3: "Light Snow", 4: "H
 df['month'] = df['month'].map({1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
                             7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"})
 
+# reverse normalization in columns 
+temp_max = 41
+atemp_max = 50
+humidity_max = 100
+windspeed_max = 67
+
+df["temp"] = df["temp"] * temp_max
+df["atemp"] = df["atemp"] * atemp_max
+df["humidity"] = df["humidity"] * humidity_max
+df["windspeed"] = df["windspeed"] * windspeed_max
+
+#make new column part of day
+def get_part_of_day(hour):
+    hour = int(hour)
+    if 5 <= hour <= 11:
+        return "Morning"
+    elif 12 <= hour <= 16:
+        return "Afternoon"
+    elif 17 <= hour <= 20:
+        return "Evening"
+    else:
+        return "Night"
+
+df["part_of_day"] = df["hour"].astype(int).apply(get_part_of_day)
+
+#make new column for rush hour
+def is_rush_hour(hour):
+    # Define the rush hour as 7-9 AM and 5-7 PM
+    if (7 <= hour <= 9) or (17 <= hour <= 19):
+        return 1
+    else:
+        return 0
+
+df['rush_hour'] = df['hour'].apply(is_rush_hour)
+
+
 # Sidebar filters using selectbox
 st.sidebar.header("📊 Filter the Data")
-year = st.sidebar.selectbox("Select Year", sorted(df['year'].unique()), index=0)
-month = st.sidebar.selectbox("Select Month", sorted(df['month'].unique()), index=0)
-weekday = st.sidebar.selectbox("Select Weekday", sorted(df['weekday'].unique()), index=0)
-weather = st.sidebar.selectbox("Select Weather", sorted(df['weather'].unique()), index=0)
+year = st.sidebar.selectbox("Select Year", sorted(df['year'].unique()))
+month = st.sidebar.selectbox("Select Month", sorted(df['month'].unique()))
+weekday = st.sidebar.selectbox("Select Weekday", sorted(df['weekday'].unique()))
+weather = st.sidebar.selectbox("Select Weather", sorted(df['weather'].unique()))
+part_of_day=st.sidebar.selectbox("Select Part of Day", sorted(df['part_of_day'].unique()))
 
 # Filter the data based on sidebar selections
 df_filtered = df.copy()
@@ -59,15 +96,21 @@ st.plotly_chart(fig2, use_container_width=True)
 
 # Temperature scatter plot with trendline
 st.markdown("### 🌡️ Temperature Effect on Rides")
-fig3 = px.scatter(df_filtered, x='temp', y='count', color='season', title="Temperature vs Ride Count",  template="plotly_dark")
-fig3.update_layout(title_font_size=24, title_x=0.5, xaxis_title="Temperature (Normalized)", yaxis_title="Total Rides")
+fig3 = px.scatter(df_filtered, x='temp', y='count', color='season', title="Temperature vs Ride Count", trendline='ols', template="plotly_dark")
+fig3.update_layout(title_font_size=24, title_x=0.5, xaxis_title="Temperature", yaxis_title="Total Rides")
 st.plotly_chart(fig3, use_container_width=True)
 
 
-st.markdown("### 🕒 Hourly Ride Distribution")
-hourly_df = df_filtered.groupby('hour')['count'].sum().reset_index()
-fig5 = px.bar(hourly_df, x='hour', y='count', title="Total Rides by Hour of the Day", labels={"hr": "Hour", "cnt": "Ride Count"}, template="plotly_dark")
-st.plotly_chart(fig5, use_container_width=True)
+st.markdown("### 🌅 Ride Distribution by Part of Day")
+part_day_df = df_filtered.groupby('part_of_day')['count'].sum().reset_index().sort_values(by='count', ascending=False)
+
+fig_part_day = px.bar(part_day_df,x='part_of_day',y='count',color='part_of_day',title="Total Rides by Part of Day",
+    template="plotly_dark"
+)
+fig_part_day.update_layout(xaxis_title="Part of Day",yaxis_title="Total Rides",title_font_size=24,
+    title_x=0.5
+)
+st.plotly_chart(fig_part_day, use_container_width=True)
 
 st.markdown("### 🧍‍♂️ User Type Distribution")
 user_counts = df_filtered[['casual', 'registered']].sum().reset_index()
@@ -76,26 +119,16 @@ fig6 = px.pie(user_counts, values='Count', names='User Type', title='User Type P
 st.plotly_chart(fig6, use_container_width=True)
 
 st.markdown("### 💧 Humidity vs Ride Count")
-fig7 = px.scatter(df_filtered, x='humidity', y='count', color='season', title="Humidity vs Ride Count", labels={"hum": "Humidity", "cnt": "Ride Count"}, template="plotly_dark")
+fig7 = px.scatter(df_filtered, x='humidity', y='count', color='season', title="Humidity vs Ride Count", trendline='ols', labels={"hum": "Humidity", "cnt": "Ride Count"}, template="plotly_dark")
 st.plotly_chart(fig7, use_container_width=True)
 
 st.markdown("### 📦 Ride Count Distribution by Month")
 fig9 = px.box(df_filtered, x='month', y='count', color='month', title="Distribution of Ride Counts by Month", template="plotly_dark")
 st.plotly_chart(fig9, use_container_width=True)
 
-def is_rush_hour(hour):
-    # Define the rush hour as 7-9 AM and 5-7 PM
-    if (7 <= hour <= 9) or (17 <= hour <= 19):
-        return 1
-    else:
-        return 0
-
-df_filtered['rush_hour'] = df_filtered['hour'].apply(is_rush_hour)
-
 
 model = joblib.load("bike_count_prediction_rf.joblib")
 
-MODEL_TEST_R2 = 0.93
 
 # Input widgets for features
 st.markdown("### 🧑‍🔬 Predict Bike Rentals")
@@ -116,10 +149,10 @@ with col2:
     weather = st.selectbox("Weather", ["Clear", "Mist", "Light Snow", "Heavy Rain"])
 
 with col3:
-    temp = st.slider("Temperature (Normalized)", 0.0, 1.0, 0.5)
-    atemp = st.slider("Feels-like Temperature (Normalized)", 0.0, 1.0, 0.5)
-    humidity = st.slider("Humidity (Normalized)", 0.0, 1.0, 0.5)
-    windspeed = st.slider("Windspeed (Normalized)", 0.0, 1.0, 0.3)
+    temp = st.slider("Temperature")
+    atemp = st.slider("Feels-like Temperature ")
+    humidity = st.slider("Humidity")
+    windspeed = st.slider("Windspeed")
     rush_hour = st.selectbox("Rush Hour", ["No", "Yes"])
 
 # Preprocess inputs
@@ -144,7 +177,7 @@ input_data = {
     "rush_hour": int(binary_map[rush_hour])
 }
 
-# Convert input data to DataFrame with explicit dtypes matching training data
+# Convert input data to DataFrame for prediction
 input_df = pd.DataFrame([input_data]).astype({
     "season": "int64",
     "year": "int64",
@@ -153,7 +186,7 @@ input_df = pd.DataFrame([input_data]).astype({
     "holiday": "int64",
     "weekday": "int64",
     "workingday": "int64",
-    "weather": "object",  # Critical: must be int64 to match training data
+    "weather": "object",  
     "rush_hour": "int64",
     "temp": "float64",
     "atemp": "float64",
