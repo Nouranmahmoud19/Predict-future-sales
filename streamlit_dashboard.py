@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 import numpy as np
-pip install statsmodels
+
 
 st.set_page_config(page_title="Bike sharing Dashboard", layout="wide")
 
