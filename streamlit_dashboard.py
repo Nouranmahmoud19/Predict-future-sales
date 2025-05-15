@@ -84,7 +84,7 @@ col3.metric("Registered Users", f"{df_filtered['registered'].sum():,}")
 # Daily trend - Line chart
 st.markdown("### 📅 Daily Ride Trend")
 daily = df_filtered.groupby('datetime')['count'].sum().reset_index()
-fig1 = px.line(daily, x='datetime', y='count', title="Total Rides per Day", template="plotly_dark",marker=True)
+fig1 = px.line(daily, x='datetime', y='count', title="Total Rides per Day", template="plotly_dark")
 fig1.update_layout(title_font_size=24, title_x=0.5, xaxis_title="Date", yaxis_title="Total Rides")
 st.plotly_chart(fig1, use_container_width=True)
 
